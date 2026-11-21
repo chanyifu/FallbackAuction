@@ -5,7 +5,7 @@ set -e
 cd /app/contracts
 
 echo "[boot] starting hardhat node :8545"
-npx hardhat node --port 8545 --host 0.0.0.0 &
+npx hardhat node --port 8545 &
 
 # 等待节点 RPC 就绪（node 22 自带 fetch，不依赖 curl）
 for i in $(seq 1 30); do
