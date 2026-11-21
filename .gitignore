@@ -1,0 +1,18 @@
+# 依赖
+node_modules/
+contracts/node_modules/
+
+# 本地技能镜像与临时脚本（工作目录，不入库）
+.monskills-src/
+
+# 一次性测试网部署/出价密钥（禁止入库）
+contracts/.deploy-key.json
+contracts/.bidder-keys.json
+
+# 环境与本地临时
+.env
+.env.local
+*.log
+
+# 构建产物（保留 ABI 供前端读取，bytecode 可忽略）
+contracts/artifacts/deployment-*.local.json

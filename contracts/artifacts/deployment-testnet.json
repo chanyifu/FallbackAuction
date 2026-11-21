@@ -1,0 +1,18 @@
+{
+  "chainId": 10143,
+  "network": "monad-testnet",
+  "address": "0x47c0a70433eee4c5f17c8e71d56fa8b29d7c90f5",
+  "deployer": "0xd1E063eA3F42884D6302aafC7B53C437682C328b",
+  "deployTx": "0x40f99c3106a08de61967eeaaf82376ff4eb354b33b1248dbfdf9940d6897d226",
+  "params": {
+    "beneficiary": "0xd1E063eA3F42884D6302aafC7B53C437682C328b",
+    "itemUri": "ipfs://fallback-auction-demo",
+    "startPrice": "100000000000000000",
+    "minIncrement": "50000000000000000",
+    "bidDeadline": "1795241938",
+    "payWindow": "600",
+    "depositBps": "1000",
+    "maxBidders": "8"
+  },
+  "explorer": "https://testnet.monadscan.com/address/0x47c0a70433eee4c5f17c8e71d56fa8b29d7c90f5"
+}

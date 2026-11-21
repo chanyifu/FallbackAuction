@@ -1,0 +1,83 @@
+{
+  "version": 2,
+  "skills": {
+    "addresses": {
+      "source": "./.monskills-src/repo",
+      "sourceType": "local",
+      "computedHash": "caa3ef69da986f1e9326dbbb407600e3abbbba5de33137728e427cdce0590138",
+      "installMode": "copy"
+    },
+    "concepts": {
+      "source": "./.monskills-src/repo",
+      "sourceType": "local",
+      "computedHash": "a1c560bac5d1c7e12057dd0164f0d3ba5841d781b1836d6be35575fde7189f6b",
+      "installMode": "copy"
+    },
+    "gas": {
+      "source": "./.monskills-src/repo",
+      "sourceType": "local",
+      "computedHash": "16fd09749489e9e26a815ef1e0497e6a2516f3137c285ce6f3d25fcce417343a",
+      "installMode": "copy"
+    },
+    "indexer": {
+      "source": "./.monskills-src/repo",
+      "sourceType": "local",
+      "computedHash": "1dac731d490ef821977b23db72371a6fd4410a521acc2f6197543a811e4ef84b",
+      "installMode": "copy"
+    },
+    "mojo": {
+      "source": "./.monskills-src/blitz-harness-main",
+      "sourceType": "local",
+      "computedHash": "a7520ac2a7b92055c9e569a59fcbbf76838cf9ef3d584eb70ec5898282760187",
+      "installMode": "copy"
+    },
+    "mojo-mentor": {
+      "source": "./.monskills-src/blitz-harness-main",
+      "sourceType": "local",
+      "computedHash": "8fad16feeac5214dbf951dab93b136f06eb6e176d91ec88e454b9f2a5eb6cdd4",
+      "installMode": "copy"
+    },
+    "mojo-submit": {
+      "source": "./.monskills-src/blitz-harness-main",
+      "sourceType": "local",
+      "computedHash": "71b777e59db862fca9385684a3ecf047c91bb26e2b4e4eea9f8ca69396b46e34",
+      "installMode": "copy"
+    },
+    "monskill": {
+      "source": "./.monskills-src/repo",
+      "sourceType": "local",
+      "computedHash": "488cd49059c0179d072d19000c3296f7602f57973ef903b9fd2a546809cc0fbc",
+      "installMode": "copy"
+    },
+    "scaffold": {
+      "source": "./.monskills-src/repo",
+      "sourceType": "local",
+      "computedHash": "c7081debfd4c94a741378edbac0998ea7c3c0e1b46ec2c934516049294276eee",
+      "installMode": "copy"
+    },
+    "tooling-and-infra": {
+      "source": "./.monskills-src/repo",
+      "sourceType": "local",
+      "computedHash": "d0f5e5f17f83cd2b11c2d3297884e4d37c9fc7065e0508a2e351d85455986f04",
+      "installMode": "copy"
+    },
+    "wallet": {
+      "source": "./.monskills-src/repo",
+      "sourceType": "local",
+      "computedHash": "635e45a235ee56d28a3e5899a857763367c18fc57beb41a831a0dbed1f2eac38",
+      "installMode": "copy"
+    },
+    "wallet-integration": {
+      "source": "./.monskills-src/repo",
+      "sourceType": "local",
+      "computedHash": "02c9558f995a37d5b7f95037a891fa2a6cccd6fe7007460b2d0f537d4ac03806",
+      "installMode": "copy"
+    },
+    "why-monad": {
+      "source": "./.monskills-src/repo",
+      "sourceType": "local",
+      "computedHash": "2d9297505b86c9446bf10e76de6588a0aa7663b3e8269b6b0bc0155b673ece53",
+      "installMode": "copy"
+    }
+  }
+}
