@@ -14,5 +14,8 @@ contracts/.bidder-keys.json
 .env.local
 *.log
 
+# 本地多场演示清单（demo-multi.js 每次重跑生成，含测试助记词）
+web/demo-manifest.js
+
 # 构建产物（保留 ABI 供前端读取，bytecode 可忽略）
 contracts/artifacts/deployment-*.local.json

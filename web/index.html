@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>FallbackAuction · 拍卖履约托管与违约递补协议</title>
+<title>FallbackAuction · 多场并发履约演示</title>
 <style>
   :root{
     --bg:#0b0e14; --panel:#131826; --panel2:#1a2133; --line:#263049;
@@ -11,26 +11,42 @@
     --green:#4ade80; --red:#f87171; --violet:#a78bfa; --gray:#64748b;
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--text);font:15px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
-  .wrap{max-width:1080px;margin:0 auto;padding:28px 22px 60px}
-  header.top{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;margin-bottom:22px}
-  h1{font-size:22px;margin:0 0 4px}
+  body{margin:0;background:var(--bg);color:var(--text);font:14px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
+  .wrap{max-width:1280px;margin:0 auto;padding:26px 22px 60px}
+  header.top{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;margin-bottom:18px}
+  h1{font-size:21px;margin:0 0 4px}
   .sub{color:var(--muted);font-size:13px}
   .badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border:1px solid var(--line);border-radius:999px;font-size:12px;color:var(--muted)}
   .badge .dot{width:7px;height:7px;border-radius:50%;background:var(--cyan)}
-  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
-  @media(max-width:860px){.grid{grid-template-columns:repeat(2,1fr)}}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px}
-  .card h2{font-size:13px;color:var(--muted);font-weight:600;margin:0 0 12px;text-transform:uppercase;letter-spacing:.04em}
-  .stat{font-size:22px;font-weight:700}
-  .stat small{font-size:12px;color:var(--muted);font-weight:400}
-  .kv{display:grid;grid-template-columns:120px 1fr;gap:8px 12px;font-size:14px}
-  .kv dt{color:var(--muted)}
-  .kv dd{margin:0;word-break:break-all}
-  table{width:100%;border-collapse:collapse;font-size:14px}
-  th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left}
-  th{color:var(--muted);font-weight:600;font-size:12px}
-  td.mono,th.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px}
+  .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:14px 0}
+  button{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:8px 13px;font-size:13px;cursor:pointer}
+  button:hover:not(:disabled){border-color:var(--cyan)}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  button.primary{background:#123f3a;border-color:#1f5149;color:var(--cyan)}
+  .banner{background:#2a1212;border:1px solid #5a2222;color:var(--red);border-radius:12px;padding:12px 14px;font-size:13px;margin:12px 0;display:none}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  @media(max-width:1080px){.grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:720px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px}
+  .card-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .card-title{font-weight:700;font-size:15px}
+  .tag{font-size:11px;padding:2px 9px;border-radius:999px;border:1px solid transparent}
+  .tag.fallback{color:var(--cyan);border-color:#1f4d46;background:#102622}
+  .tag.abort{color:var(--violet);border-color:#3d2f63;background:#1c1630}
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .stat{background:var(--panel2);border-radius:12px;padding:10px 12px}
+  .stat .k{color:var(--muted);font-size:11px}
+  .stat .v{font-size:17px;font-weight:700}
+  .stat .v small{font-size:11px;color:var(--muted);font-weight:400}
+  .trail{display:flex;flex-wrap:wrap;gap:6px}
+  .node{font-size:11px;padding:3px 9px;border-radius:8px;border:1px solid var(--line);color:var(--muted)}
+  .node.cur{color:var(--text);border-color:var(--cyan);background:#102622}
+  .node.done{color:var(--green);border-color:#1f5130}
+  .node.bad{color:var(--red);border-color:#5a2222}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:7px 6px;border-bottom:1px solid var(--line);text-align:left}
+  th{color:var(--muted);font-weight:600;font-size:11px}
+  td.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
   .pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;border:1px solid transparent}
   .s-0{color:var(--cyan);border-color:#1f4d46;background:#102622}
   .s-1{color:var(--amber);border-color:#5a4417;background:#2a2110}
@@ -38,237 +54,259 @@
   .s-3{color:var(--red);border-color:#5a2222;background:#2a1212}
   .s-4{color:var(--violet);border-color:#3d2f63;background:#1c1630}
   .s-5,.s-6{color:var(--gray);border-color:#2c3648;background:#161c28}
-  .row-winner{background:#14203a}
-  .rules{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-  @media(max-width:860px){.rules{grid-template-columns:1fr}}
-  .rule{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:16px}
-  .rule b{color:var(--cyan)}
-  .rule p{margin:6px 0 0;color:var(--muted);font-size:13px}
-  .toolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:18px 0}
-  select,button{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:13px}
-  button{cursor:pointer}
-  button:hover{border-color:var(--cyan)}
+  .actions{display:flex;flex-wrap:wrap;gap:8px}
+  .addr{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--muted)}
+  footer{margin-top:22px;color:var(--muted);font-size:12px}
   a{color:var(--cyan);text-decoration:none}
-  a:hover{text-decoration:underline}
-  .err{color:var(--red);font-size:13px;margin-top:10px}
-  .muted{color:var(--muted)}
-  .addr{font-family:ui-monospace,Menlo,monospace;font-size:12px}
-  footer{margin-top:26px;color:var(--muted);font-size:12px}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header class="top">
     <div>
-      <h1>FallbackAuction · 拍卖履约托管与违约递补协议</h1>
-      <div class="sub">出价只冻保证金 · 超时违约罚没 · 按排名自动递补 · 无人承接则流拍退款</div>
+      <h1>FallbackAuction · 多场并发履约演示</h1>
+      <div class="sub">分钟级闪拍 · 落槌后违约罚没 → 顺位递补 → 补款成交 / 流拍退款，链上状态机强制执行</div>
     </div>
-    <span class="badge"><span class="dot"></span>Monad Testnet · chainId 10143</span>
+    <span class="badge"><span class="dot"></span>本地 Hardhat · chainId 31337</span>
   </header>
 
   <div class="toolbar">
-    <label class="muted">节点</label>
-    <select id="rpcSel">
-      <option value="https://testnet-rpc.monad.xyz">Monad 测试网（公共 RPC）</option>
-      <option value="http://127.0.0.1:8545">本地 Hardhat 节点（8545）</option>
-    </select>
-    <label class="muted">合约</label>
-    <input id="addr" class="addr" style="background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 12px;color:var(--text);width:340px" />
-    <button id="refresh">刷新</button>
-    <span id="clock" class="muted"></span>
+    <button id="runAll" class="primary">▶ 一键演示全部场次</button>
+    <button id="refresh">刷新状态</button>
+    <span id="clock" class="sub"></span>
   </div>
+  <div id="banner" class="banner"></div>
 
-  <div id="err" class="err" style="display:none"></div>
-
-  <section class="grid" style="margin-bottom:18px">
-    <div class="card">
-      <h2>协议状态</h2>
-      <div class="stat"><span id="statePill" class="pill s-0">—</span></div>
-    </div>
-    <div class="card">
-      <h2>合约余额</h2>
-      <div class="stat"><span id="balance">–</span> <small>MON</small></div>
-    </div>
-    <div class="card">
-      <h2>受益人可提</h2>
-      <div class="stat"><span id="credit">–</span> <small>MON</small></div>
-    </div>
-    <div class="card">
-      <h2>出价截止</h2>
-      <div class="stat" id="deadline">–</div>
-    </div>
-  </section>
-
-  <section class="card" style="margin-bottom:18px">
-    <h2>拍卖参数</h2>
-    <dl class="kv" id="params">
-      <dt>标的</dt><dd id="p-itemUri">–</dd>
-      <dt>受益人</dt><dd id="p-beneficiary" class="addr">–</dd>
-      <dt>起拍价</dt><dd id="p-startPrice">–</dd>
-      <dt>最小加价</dt><dd id="p-minIncrement">–</dd>
-      <dt>保证金比例</dt><dd id="p-depositBps">–</dd>
-      <dt>付款窗口</dt><dd id="p-payWindow">–</dd>
-      <dt>人数上限</dt><dd id="p-maxBidders">–</dd>
-      <dt>付款截止</dt><dd id="p-payDeadline">–</dd>
-    </dl>
-  </section>
-
-  <section class="card" style="margin-bottom:18px">
-    <h2>出价榜（按出价从高到低）</h2>
-    <table>
-      <thead>
-        <tr><th>排名</th><th>出价人</th><th class="mono">出价 (MON)</th><th class="mono">保证金 (MON)</th><th>状态</th></tr>
-      </thead>
-      <tbody id="bids"><tr><td colspan="5" class="muted">加载中…</td></tr></tbody>
-    </table>
-  </section>
-
-  <section class="rules">
-    <div class="rule"><b>1 · 出价托管保证金</b><p>出价时只冻结 10% 保证金进入合约，不做全额托管；同一人可加价补足差额。</p></div>
-    <div class="rule"><b>2 · 超时违约罚没</b><p>落槌后付款窗口内未付尾款，当前中标人违约，保证金全额罚没给受益人。</p></div>
-    <div class="rule"><b>3 · 递补 / 流拍退款</b><p>任何人可触发，每次只向下推一名候补；候补拒绝则退保证金；无人承接即流拍，未违约者全额退款。</p></div>
-  </section>
+  <div id="grid" class="grid"></div>
 
   <footer>
-    合约地址：<span id="footerAddr" class="addr">–</span> ·
-    <a id="explorer" target="_blank" rel="noopener">MonadScan 测试网</a>
+    合约：FallbackAuction · 测试网单场证据：
+    <a href="https://testnet.monadscan.com/address/0x47c0a70433eee4c5f17c8e71d56fa8b29d7c90f5" target="_blank" rel="noopener">MonadScan 测试网</a>
   </footer>
 </div>
 
+<script src="/demo-manifest.js"></script>
 <script>
-const DEFAULT_ADDR = "0x47c0a70433eee4c5f17c8e71d56fa8b29d7c90f5";
-const SEL = {
-  state: "0xc19d93fb",
-  params: "0xcff0ab96",
-  getBids: "0xb81c78ec",
-  getWinner: "0x8e7ea5b2",
-  contractBalance: "0x8b7afe2e",
-  payDeadline: "0xb9f8dc78",
-  beneficiaryCredit: "0x282f28d4",
-};
-const STATE_META = [
-  ["OPEN", "s-0", "出价进行中"],
-  ["PAYING", "s-1", "中标人待付款"],
-  ["WON", "s-2", "已成交"],
-  ["DEFAULTED", "s-3", "已违约"],
-  ["FALLBACK", "s-4", "递补中"],
-  ["ABORTED", "s-5", "已流拍"],
-  ["REFUNDED", "s-6", "已退款"],
-];
+const M = window.DEMO_MANIFEST;
+const banner = document.getElementById("banner");
 
-const $ = (id) => document.getElementById(id);
-$("addr").value = DEFAULT_ADDR;
+if (!M) {
+  banner.style.display = "block";
+  banner.textContent = "未找到演示清单。请先在 contracts/ 目录运行 node scripts/demo-multi.js 生成清单。";
+} else {
+  const RELAY = M.relay;
+  const ROLE = {};
+  M.accounts.forEach((a) => (ROLE[a.address.toLowerCase()] = a.role));
+  const STATE_META = [
+    ["OPEN", "s-0", "出价中"],
+    ["PAYING", "s-1", "待付款"],
+    ["WON", "s-2", "已成交"],
+    ["DEFAULTED", "s-3", "已违约"],
+    ["FALLBACK", "s-4", "递补中"],
+    ["ABORTED", "s-5", "已流拍"],
+    ["REFUNDED", "s-6", "已退款"],
+  ];
+  const MON = 10n ** 18n;
+  const fmtMon = (wei) => (Number(wei) / 1e18).toFixed(2);
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const short = (a) => a.slice(0, 6) + "…" + a.slice(-4);
 
-function rpc(rpcUrl, data) {
-  return fetch(rpcUrl, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ jsonrpc: "2.0", method: "eth_call", params: [{ to: $("addr").value, data }, "latest"], id: 1 }),
-  }).then((r) => r.json()).then((j) => {
-    if (j.error) throw new Error(j.error.message || JSON.stringify(j.error));
-    return j.result;
-  });
-}
-const words = (hex) => { const h = hex.slice(2); const o = []; for (let i = 0; i < h.length; i += 64) o.push(h.slice(i, i + 64).padEnd(64, "0")); return o; };
-const u256 = (w) => BigInt(w.startsWith("0x") ? w : "0x" + w);
-const addrOf = (w) => "0x" + w.slice(24);
-const MON = 10n ** 18n;
-function fmtMon(wei) {
-  const v = Number(wei) / 1e18;
-  return v.toFixed(4).replace(/0+$/, "").replace(/\.$/, "");
-}
-function hexToUtf8(hex) {
-  const bytes = Uint8Array.from(hex.match(/../g).map((b) => parseInt(b, 16)));
-  return new TextDecoder().decode(bytes);
-}
-function fmtTs(sec) {
-  if (!sec || sec === 0n) return "–";
-  const diff = Number(sec) - Math.floor(Date.now() / 1000);
-  const base = new Date(Number(sec) * 1000).toLocaleString("zh-CN", { hour12: false });
-  if (diff <= 0) return base + "（已截止）";
-  const h = Math.floor(diff / 3600), m = Math.floor((diff % 3600) / 60), s = diff % 60;
-  return `${base}（剩 ${h}h ${m}m ${s}s）`;
-}
+  const cards = {};
+  const grid = document.getElementById("grid");
 
-async function load() {
-  const err = $("err"); err.style.display = "none";
-  const rpcUrl = $("rpcSel").value;
-  const addr = $("addr").value;
-  try {
-    const [stateRaw, paramsRaw, bidsRaw, winnerRaw, balRaw, creditRaw, payDeadRaw] = await Promise.all([
-      rpc(rpcUrl, SEL.state), rpc(rpcUrl, SEL.params), rpc(rpcUrl, SEL.getBids),
-      rpc(rpcUrl, SEL.getWinner), rpc(rpcUrl, SEL.contractBalance),
-      rpc(rpcUrl, SEL.beneficiaryCredit), rpc(rpcUrl, SEL.payDeadline),
-    ]);
-
-    const state = Number(u256(stateRaw));
-    const meta = STATE_META[state] || ["?", "s-0", "未知"];
-    $("statePill").className = "pill " + meta[1];
-    $("statePill").textContent = meta[2];
-
-    $("balance").textContent = fmtMon(u256(balRaw));
-    $("credit").textContent = fmtMon(u256(creditRaw));
-
-    // params tuple
-    const pw = words(paramsRaw);
-    const strOff = Number(u256(pw[1])) / 32;
-    const strLen = Number(u256(pw[strOff]));
-    const itemUri = hexToUtf8(pw.slice(strOff + 1, strOff + 1 + Math.ceil(strLen / 32)).join("").slice(0, strLen * 2));
-    $("p-itemUri").textContent = itemUri;
-    $("p-beneficiary").textContent = addrOf(pw[0]);
-    $("p-startPrice").textContent = fmtMon(u256(pw[2])) + " MON";
-    $("p-minIncrement").textContent = fmtMon(u256(pw[3])) + " MON";
-    $("p-depositBps").textContent = Number(u256(pw[6])) / 100 + "%";
-    $("p-payWindow").textContent = Number(u256(pw[5])) + " 秒";
-    $("p-maxBidders").textContent = Number(u256(pw[7])) + " 人";
-    $("deadline").textContent = fmtTs(u256(pw[4]));
-    $("p-payDeadline").textContent = fmtTs(u256(payDeadRaw));
-
-    // winner
-    const ww = words(winnerRaw);
-    const winner = addrOf(ww[0]);
-
-    // bids array
-    const bw = words(bidsRaw);
-    const arrOff = Number(u256(bw[0])) / 32;
-    const len = Number(u256(bw[arrOff]));
-    const tbody = $("bids");
-    tbody.innerHTML = "";
-    if (len === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" class="muted">暂无出价</td></tr>';
-    }
-    for (let i = 0; i < len; i++) {
-      const b = arrOff + 1 + i * 5;
-      const bidder = addrOf(bw[b]);
-      const price = u256(bw[b + 1]);
-      const deposit = u256(bw[b + 2]);
-      const active = u256(bw[b + 3]) === 1n;
-      const paid = u256(bw[b + 4]) === 1n;
-      let label, cls;
-      if (paid) { label = "已成交"; cls = "s-2"; }
-      else if (!active && deposit === 0n) { label = "已退款 / 拒绝"; cls = "s-6"; }
-      else if (!active) { label = "已违约（罚没）"; cls = "s-3"; }
-      else if (bidder === winner) { label = "当前中标"; cls = "s-1"; }
-      else { label = "候补"; cls = "s-0"; }
-      const tr = document.createElement("tr");
-      if (bidder === winner && active) tr.className = "row-winner";
-      tr.innerHTML = `<td>#${i + 1}</td><td class="mono">${bidder}</td><td class="mono">${fmtMon(price)}</td><td class="mono">${fmtMon(deposit)}</td><td><span class="pill ${cls}">${label}</span></td>`;
-      tbody.appendChild(tr);
-    }
-
-    $("footerAddr").textContent = addr;
-    $("explorer").href = "https://testnet.monadscan.com/address/" + addr;
-    $("clock").textContent = "更新于 " + new Date().toLocaleTimeString("zh-CN", { hour12: false });
-  } catch (e) {
-    err.style.display = "block";
-    err.textContent = "读取链上数据失败：" + e.message;
+  function el(tag, cls, text) {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined) e.textContent = text;
+    return e;
   }
-}
 
-$("refresh").addEventListener("click", load);
-$("rpcSel").addEventListener("change", load);
-load();
-setInterval(load, 5000);
+  function buildCard(auction) {
+    const card = el("div", "card");
+    const head = el("div", "card-head");
+    const title = el("div", "card-title", auction.label);
+    const tag = el("span", "tag " + auction.scenario, auction.title);
+    head.append(title, tag);
+
+    const stats = el("div", "stats");
+    const stBal = el("div", "stat"); stBal.append(el("div", "k", "合约余额"));
+    const stBalV = el("div", "v", "–"); stBal.append(stBalV);
+    const stCred = el("div", "stat"); stCred.append(el("div", "k", "受益人可提"));
+    const stCredV = el("div", "v", "–"); stCred.append(stCredV);
+    stats.append(stBal, stCred);
+
+    const trail = el("div", "trail");
+    const table = document.createElement("table");
+    table.innerHTML = "<thead><tr><th>角色</th><th class='mono'>出价</th><th class='mono'>保证金</th><th>状态</th></tr></thead>";
+    const tbody = document.createElement("tbody");
+    table.append(tbody);
+
+    const actions = el("div", "actions");
+    const addr = el("div", "addr", auction.address);
+
+    card.append(head, stats, trail, table, actions, addr);
+    grid.append(card);
+    cards[auction.address] = { auction, card, stBalV, stCredV, trail, tbody, actions };
+  }
+
+  async function fetchState(addr) {
+    const r = await fetch(`${RELAY}/api/state?auction=${addr}`);
+    if (!r.ok) throw new Error("state http " + r.status);
+    return r.json();
+  }
+
+  async function act(addr, wallet, method, opts = {}) {
+    const { args = [], value = "0", jumpSeconds = 0 } = opts;
+    const r = await fetch(`${RELAY}/api/act`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ auction: addr, wallet, method, args, value, jumpSeconds }),
+    });
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.error || "act failed");
+    return j;
+  }
+
+  function bidStatus(b, winnerAddr) {
+    if (b.paid) return ["已成交", "s-2"];
+    if (!b.active && b.deposit === "0") return ["已退款/拒绝", "s-6"];
+    if (!b.active) return ["已违约(罚没)", "s-3"];
+    if (b.bidder.toLowerCase() === (winnerAddr || "").toLowerCase()) return ["当前中标", "s-1"];
+    return ["候补", "s-0"];
+  }
+
+  function renderTrail(state) {
+    const trail = cards[cardsKey].trail;
+    trail.innerHTML = "";
+    STATE_META.forEach(([key, cls, label], i) => {
+      const n = el("span", "node", label);
+      if (i === state) n.classList.add("cur");
+      else if (i < state) n.classList.add(key === "DEFAULTED" ? "bad" : "done");
+      trail.append(n);
+    });
+  }
+
+  let cardsKey;
+  function renderCard(auction, s) {
+    const c = cards[auction.address];
+    cardsKey = auction.address;
+    c.stBalV.innerHTML = fmtMon(s.balance) + " <small>MON</small>";
+    c.stCredV.innerHTML = fmtMon(s.credit) + " <small>MON</small>";
+    renderTrail(s.state);
+
+    c.tbody.innerHTML = "";
+    s.bids.forEach((b) => {
+      const role = ROLE[b.bidder.toLowerCase()] || short(b.bidder);
+      const [label, cls] = bidStatus(b, s.winner.address);
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${role}</td><td class="mono">${fmtMon(b.price)}</td><td class="mono">${fmtMon(b.deposit)}</td><td><span class="pill ${cls}">${label}</span></td>`;
+      c.tbody.append(tr);
+    });
+
+    // 上下文按钮
+    c.actions.innerHTML = "";
+    const addr = auction.address;
+    const winnerRole = ROLE[s.winner.address.toLowerCase()];
+    const winner = s.bids.find((b) => b.bidder.toLowerCase() === s.winner.address.toLowerCase());
+
+    if (s.state === 0) {
+      const b = el("button", "", "落槌（截止后结算）");
+      b.onclick = async () => { await act(addr, "受益人", "settle", { jumpSeconds: 181 }); refresh(addr); };
+      c.actions.append(b);
+    } else if (s.state === 1) {
+      const pay = el("button", "primary", `${winnerRole} 付尾款`);
+      const remaining = winner ? BigInt(winner.price) - BigInt(winner.deposit) : 0n;
+      pay.onclick = async () => { await act(addr, winnerRole, "pay", { value: remaining.toString() }); refresh(addr); };
+      const def = el("button", "", "模拟超时违约");
+      def.onclick = async () => { await act(addr, "受益人", "advanceFallback", { jumpSeconds: 121 }); refresh(addr); };
+      c.actions.append(pay, def);
+      // 候补拒绝（abort 场景递补到 C 时）
+      if (auction.scenario === "abort" && winnerRole === "C") {
+        const dec = el("button", "", "C 拒绝递补");
+        dec.onclick = async () => { await act(addr, "C", "decline"); refresh(addr); };
+        c.actions.append(dec);
+      }
+    } else if (s.state === 2) {
+      const cBid = s.bids.find((b) => ROLE[b.bidder.toLowerCase()] === "C");
+      if (cBid && cBid.active) {
+        const rf = el("button", "", "C 退保证金");
+        rf.onclick = async () => { await act(addr, "C", "refund"); refresh(addr); };
+        c.actions.append(rf);
+      }
+      if (BigInt(s.credit) > 0n) {
+        const wd = el("button", "primary", "受益人提款");
+        wd.onclick = async () => { await act(addr, "受益人", "withdraw"); refresh(addr); };
+        c.actions.append(wd);
+      }
+    } else if (s.state === 5) {
+      if (BigInt(s.credit) > 0n) {
+        const wd = el("button", "primary", "受益人提款罚没");
+        wd.onclick = async () => { await act(addr, "受益人", "withdraw"); refresh(addr); };
+        c.actions.append(wd);
+      }
+    }
+  }
+
+  async function refresh(addr) {
+    const auction = M.auctions.find((a) => a.address === addr);
+    try {
+      const s = await fetchState(addr);
+      renderCard(auction, s);
+    } catch (e) {
+      banner.style.display = "block";
+      banner.textContent = "读取链上状态失败：" + e.message + "（确认中继 node scripts/demo-server.js 在运行）";
+    }
+  }
+
+  async function refreshAll() {
+    for (const a of M.auctions) await refresh(a.address);
+    document.getElementById("clock").textContent = "更新于 " + new Date().toLocaleTimeString("zh-CN", { hour12: false });
+  }
+
+  async function runOne(auction) {
+    const addr = auction.address;
+    await act(addr, "受益人", "settle", { jumpSeconds: 181 });
+    await refresh(addr); await sleep(1300);
+    if (auction.scenario === "fallback") {
+      await act(addr, "受益人", "advanceFallback", { jumpSeconds: 121 });
+      await refresh(addr); await sleep(1300);
+      const s = await fetchState(addr);
+      const w = s.bids.find((b) => b.bidder.toLowerCase() === s.winner.address.toLowerCase());
+      const remaining = BigInt(w.price) - BigInt(w.deposit);
+      await act(addr, "B", "pay", { value: remaining.toString() });
+      await refresh(addr); await sleep(1100);
+      await act(addr, "C", "refund");
+      await refresh(addr); await sleep(800);
+      await act(addr, "受益人", "withdraw");
+      await refresh(addr);
+    } else {
+      await act(addr, "受益人", "advanceFallback", { jumpSeconds: 121 });
+      await refresh(addr); await sleep(1300);
+      await act(addr, "受益人", "advanceFallback", { jumpSeconds: 121 });
+      await refresh(addr); await sleep(1300);
+      await act(addr, "C", "decline");
+      await refresh(addr); await sleep(800);
+      await act(addr, "受益人", "withdraw");
+      await refresh(addr);
+    }
+  }
+
+  async function runAll() {
+    const btn = document.getElementById("runAll");
+    btn.disabled = true;
+    for (const a of M.auctions) {
+      try { await runOne(a); } catch (e) { console.error(a.address, e); }
+      await sleep(600);
+    }
+    btn.disabled = false;
+  }
+
+  M.auctions.forEach(buildCard);
+  refreshAll();
+  setInterval(refreshAll, 3000);
+  document.getElementById("refresh").onclick = refreshAll;
+  document.getElementById("runAll").onclick = runAll;
+}
 </script>
 </body>
 </html>
