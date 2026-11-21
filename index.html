@@ -101,20 +101,29 @@ const SEL = {
 };
 const fmt = (wei) => (Number(wei) / 1e18).toFixed(4).replace(/0+$/, "").replace(/\.$/, "");
 const short = (a) => a.slice(0, 6) + "…" + a.slice(-4);
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const words = (hex) => hex.slice(2).match(/.{64}/g) || [];
 const addr = (w) => "0x" + w.slice(24);
 const u256 = (w) => BigInt("0x" + w);
 const isBool = (w) => w !== "0".padStart(64, "0");
 
 async function call(contract, data) {
-  const r = await fetch(RPC, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ jsonrpc: "2.0", method: "eth_call", params: [{ to: contract, data }, "latest"], id: 1 }),
-  });
-  const j = await r.json();
-  if (j.error) throw new Error(j.error.message);
-  return j.result || "0x";
+  let last = "rate limited";
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const r = await fetch(RPC, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ jsonrpc: "2.0", method: "eth_call", params: [{ to: contract, data }, "latest"], id: 1 }),
+    });
+    const txt = await r.text();
+    let j;
+    try { j = JSON.parse(txt); } catch { j = { error: { message: "non-JSON: " + txt.slice(0, 40) } }; }
+    if (!j.error) return j.result || "0x";
+    last = j.error.message;
+    if (/rate limit|429|too many/i.test(last)) { await sleep(700 * (attempt + 1)); continue; }
+    throw new Error(last);
+  }
+  throw new Error(last);
 }
 
 function bidStatus(b, winnerAddr) {
@@ -126,10 +135,11 @@ function bidStatus(b, winnerAddr) {
 }
 
 async function loadAuction(a) {
-  const [stateHex, balHex, creditHex, winnerHex, bidsHex] = await Promise.all([
-    call(a.address, SEL.state), call(a.address, SEL.balance), call(a.address, SEL.credit),
-    call(a.address, SEL.winner), call(a.address, SEL.bids),
-  ]);
+  const stateHex = await call(a.address, SEL.state);
+  const balHex = await call(a.address, SEL.balance);
+  const creditHex = await call(a.address, SEL.credit);
+  const winnerHex = await call(a.address, SEL.winner);
+  const bidsHex = await call(a.address, SEL.bids);
   const state = Number(u256(words(stateHex)[0] || "0"));
   const [, cls, label] = STATE[state] || ["?", "s-5", "未知"];
   const ww = words(winnerHex);
@@ -176,20 +186,28 @@ function cardShell(a) {
   return card;
 }
 
+let refreshing = false;
 async function refreshAll() {
-  const grid = document.getElementById("grid");
-  grid.innerHTML = "";
-  for (const a of AUCTIONS) {
-    const card = cardShell(a);
-    grid.append(card);
-    try {
-      const r = await loadAuction(a);
-      card.querySelector(".state").innerHTML = `<span class="pill ${r.cls}">${r.label}</span>`;
-      card.querySelector(".credit").innerHTML = fmt(r.credit) + " <small>MON</small>";
-      card.querySelector(".bids").innerHTML = r.rows.length ? r.rows.join("") : '<tr><td colspan="4" class="addr">暂无出价</td></tr>';
-    } catch (e) {
-      card.querySelector(".bids").innerHTML = `<tr><td colspan="4" class="addr">读取失败：${e.message}</td></tr>`;
+  if (refreshing) return;
+  refreshing = true;
+  try {
+    const grid = document.getElementById("grid");
+    grid.innerHTML = "";
+    for (const a of AUCTIONS) {
+      const card = cardShell(a);
+      grid.append(card);
+      try {
+        const r = await loadAuction(a);
+        card.querySelector(".state").innerHTML = `<span class="pill ${r.cls}">${r.label}</span>`;
+        card.querySelector(".credit").innerHTML = fmt(r.credit) + " <small>MON</small>";
+        card.querySelector(".bids").innerHTML = r.rows.length ? r.rows.join("") : '<tr><td colspan="4" class="addr">暂无出价</td></tr>';
+      } catch (e) {
+        card.querySelector(".bids").innerHTML = `<tr><td colspan="4" class="addr">读取失败：${e.message}</td></tr>`;
+      }
+      await sleep(250);
     }
+  } finally {
+    refreshing = false;
   }
 }
 
