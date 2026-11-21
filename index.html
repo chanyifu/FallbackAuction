@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>FallbackAuction · Monad 测试网观测页</title>
+<title>FallbackAuction · Monad 测试网六场观测</title>
 <style>
   :root{
     --bg:#0b0e14; --panel:#131826; --panel2:#1a2133; --line:#263049;
@@ -12,21 +12,28 @@
   }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--text);font:14px/1.6 -apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif}
-  .wrap{max-width:920px;margin:0 auto;padding:26px 22px 60px}
+  .wrap{max-width:1280px;margin:0 auto;padding:26px 22px 60px}
   header.top{display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between;margin-bottom:18px}
   h1{font-size:21px;margin:0 0 4px}
   .sub{color:var(--muted);font-size:13px}
   .badge{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border:1px solid var(--line);border-radius:999px;font-size:12px;color:var(--muted)}
   .badge .dot{width:7px;height:7px;border-radius:50%;background:var(--cyan)}
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:16px}
-  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-  @media(max-width:680px){.stats{grid-template-columns:1fr}}
-  .stat{background:var(--panel2);border-radius:12px;padding:12px 14px}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  @media(max-width:1080px){.grid{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:720px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px}
+  .card-head{display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .card-title{font-weight:700;font-size:15px}
+  .tag{font-size:11px;padding:2px 9px;border-radius:999px;border:1px solid transparent}
+  .tag.fallback{color:var(--cyan);border-color:#1f4d46;background:#102622}
+  .tag.abort{color:var(--violet);border-color:#3d2f63;background:#1c1630}
+  .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .stat{background:var(--panel2);border-radius:12px;padding:10px 12px}
   .stat .k{color:var(--muted);font-size:11px}
-  .stat .v{font-size:19px;font-weight:700}
+  .stat .v{font-size:17px;font-weight:700}
   .stat .v small{font-size:11px;color:var(--muted);font-weight:400}
   table{width:100%;border-collapse:collapse;font-size:13px}
-  th,td{padding:9px 6px;border-bottom:1px solid var(--line);text-align:left}
+  th,td{padding:7px 6px;border-bottom:1px solid var(--line);text-align:left}
   th{color:var(--muted);font-weight:600;font-size:11px}
   td.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
   .pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;border:1px solid transparent}
@@ -36,11 +43,9 @@
   .s-3{color:var(--red);border-color:#5a2222;background:#2a1212}
   .s-4{color:var(--violet);border-color:#3d2f63;background:#1c1630}
   .s-5,.s-6{color:var(--gray);border-color:#2c3648;background:#161c28}
-  .meta{display:grid;grid-template-columns:1fr 1fr;gap:8px 18px;color:var(--muted);font-size:12px}
-  .meta b{color:var(--text);font-weight:600}
+  .addr{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--muted)}
+  footer{margin-top:22px;color:var(--muted);font-size:12px}
   a{color:var(--cyan);text-decoration:none}
-  .note{color:var(--muted);font-size:12px;margin-top:10px}
-  .addr{font-family:ui-monospace,Menlo,monospace;font-size:12px}
 </style>
 </head>
 <body>
@@ -48,40 +53,36 @@
   <header class="top">
     <div>
       <h1>FallbackAuction · 违约递补拍卖履约协议</h1>
-      <div class="sub">链上只读观测 · Monad Testnet · 落槌后违约罚没 → 顺位递补 → 补款成交 / 流拍退款</div>
+      <div class="sub">链上只读观测 · Monad Testnet · 三场违约递补成交 + 三场双违约流拍退款，交易全部上链</div>
     </div>
     <span class="badge"><span class="dot"></span>Monad Testnet · chainId 10143</span>
   </header>
 
-  <div class="card">
-    <div class="stats">
-      <div class="stat"><div class="k">合约状态</div><div class="v" id="state">–</div></div>
-      <div class="stat"><div class="k">合约余额（托管保证金）</div><div class="v" id="balance">– <small>MON</small></div></div>
-      <div class="stat"><div class="k">受益人可提金额</div><div class="v" id="credit">– <small>MON</small></div></div>
-    </div>
-  </div>
+  <div id="grid" class="grid"></div>
 
-  <div class="card">
-    <div class="meta" id="meta"></div>
-  </div>
-
-  <div class="card">
-    <table>
-      <thead><tr><th>出价人</th><th class="mono">出价</th><th class="mono">保证金</th><th>状态</th></tr></thead>
-      <tbody id="bids"><tr><td colspan="4" class="note">读取中…</td></tr></tbody>
-    </table>
-    <div class="note">交互操作（落槌 / 付尾款 / 递补 / 退款 / 提款）在本地六场并发演示环境中完成；本页仅只读展示测试网链上状态，每 5 秒刷新。</div>
-  </div>
-
-  <div class="note">
-    合约：<span class="addr" id="contract"></span> ·
-    <a id="explorer" target="_blank" rel="noopener">MonadScan 测试网</a>
-  </div>
+  <footer>
+    早期单场测试网证据：
+    <a href="https://testnet.monadscan.com/address/0x3fd84aa45a9fa5d8767214554711ea422a8ae191" target="_blank" rel="noopener">0x3fd8…ae191</a>
+    · 本页每 5 秒直连测试网 RPC 只读刷新，不做签名交易。
+  </footer>
 </div>
 
 <script>
 const RPC = "https://testnet-rpc.monad.xyz";
-const CONTRACT = "0x3fd84aa45a9fa5d8767214554711ea422a8ae191";
+const AUCTIONS = [
+  { label: "场次 1", scenario: "fallback", title: "违约递补成交", address: "0xe2e8ce3db727167be64ff990d2c1fed1f79c681f" },
+  { label: "场次 2", scenario: "fallback", title: "违约递补成交", address: "0xf90bceb8382ace988fa0621e918e14bc3b69fc4b" },
+  { label: "场次 3", scenario: "fallback", title: "违约递补成交", address: "0x226433ced2fb9eda7e61424d448d8857c7be9e92" },
+  { label: "场次 4", scenario: "abort", title: "双违约流拍退款", address: "0xbd07d0fe5e6b6f180ba141f315e5125e6193b422" },
+  { label: "场次 5", scenario: "abort", title: "双违约流拍退款", address: "0xbbbae379b62da16779f9f13c081e1a41e70ab4be" },
+  { label: "场次 6", scenario: "abort", title: "双违约流拍退款", address: "0xbd916ba6ddc64427a17d7d47468e971f9688e58b" },
+];
+const ROLE = {
+  "0xe9b912085ec50c378fb776bd697255133da215f3": "受益人",
+  "0x6392e7832d6ddef84326c35715410e869209cf3": "A",
+  "0xa716cdb0da67f729ab30d3ae9805b592165ca727": "B",
+  "0xd07a1c5d40f7c3525ad0d2e02a19d67a2497f618": "C",
+};
 const STATE = [
   ["OPEN", "s-0", "出价中"],
   ["PAYING", "s-1", "待付款"],
@@ -97,56 +98,42 @@ const SEL = {
   credit: "0x282f28d4",
   winner: "0x8e7ea5b2",
   bids: "0xb81c78ec",
-  params: "0xcff0ab96",
 };
-
-const MON = 10n ** 18n;
 const fmt = (wei) => (Number(wei) / 1e18).toFixed(4).replace(/0+$/, "").replace(/\.$/, "");
 const short = (a) => a.slice(0, 6) + "…" + a.slice(-4);
-
-async function call(data) {
-  const r = await fetch(RPC, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ jsonrpc: "2.0", method: "eth_call", params: [{ to: CONTRACT, data }, "latest"], id: 1 }),
-  });
-  const j = await r.json();
-  if (j.error) throw new Error(j.error.message);
-  return j.result || "0x";
-}
 const words = (hex) => hex.slice(2).match(/.{64}/g) || [];
 const addr = (w) => "0x" + w.slice(24);
 const u256 = (w) => BigInt("0x" + w);
 const isBool = (w) => w !== "0".padStart(64, "0");
 
-async function load() {
-  const [stateHex, balHex, creditHex, winnerHex, bidsHex, paramsHex] = await Promise.all([
-    call(SEL.state), call(SEL.balance), call(SEL.credit),
-    call(SEL.winner), call(SEL.bids), call(SEL.params),
-  ]);
+async function call(contract, data) {
+  const r = await fetch(RPC, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ jsonrpc: "2.0", method: "eth_call", params: [{ to: contract, data }, "latest"], id: 1 }),
+  });
+  const j = await r.json();
+  if (j.error) throw new Error(j.error.message);
+  return j.result || "0x";
+}
 
+function bidStatus(b, winnerAddr) {
+  if (b.paid) return ["已成交", "s-2"];
+  if (!b.active && b.deposit === 0n) return ["已退款/拒绝", "s-6"];
+  if (!b.active) return ["已违约(罚没)", "s-3"];
+  if (b.bidder.toLowerCase() === (winnerAddr || "").toLowerCase()) return ["当前中标", "s-1"];
+  return ["候补", "s-0"];
+}
+
+async function loadAuction(a) {
+  const [stateHex, balHex, creditHex, winnerHex, bidsHex] = await Promise.all([
+    call(a.address, SEL.state), call(a.address, SEL.balance), call(a.address, SEL.credit),
+    call(a.address, SEL.winner), call(a.address, SEL.bids),
+  ]);
   const state = Number(u256(words(stateHex)[0] || "0"));
   const [, cls, label] = STATE[state] || ["?", "s-5", "未知"];
-  document.getElementById("state").innerHTML = `<span class="pill ${cls}">${label}</span>`;
-  document.getElementById("balance").innerHTML = fmt(u256(words(balHex)[0] || "0")) + " <small>MON</small>";
-  document.getElementById("credit").innerHTML = fmt(u256(words(creditHex)[0] || "0")) + " <small>MON</small>";
-
-  // params: beneficiary, itemUriOffset, startPrice, minIncrement, bidDeadline, payWindow, depositBps, maxBidders
-  const pw = words(paramsHex);
-  const beneficiary = addr(pw[0]);
-  const startPrice = u256(pw[2]), minInc = u256(pw[3]);
-  const payWindow = u256(pw[5]), depositBps = u256(pw[6]), maxBidders = u256(pw[7]);
-  document.getElementById("meta").innerHTML = `
-    <div>受益人：<b class="addr">${beneficiary}</b></div>
-    <div>起拍价：<b>${fmt(startPrice)} MON</b> · 最小加价：<b>${fmt(minInc)} MON</b></div>
-    <div>保证金比例：<b>${Number(depositBps) / 100}%</b> · 人数上限：<b>${Number(maxBidders)}</b></div>
-    <div>付款窗口：<b>${Number(payWindow)} 秒</b></div>`;
-
-  // winner: address, price, deposit
   const ww = words(winnerHex);
   const winnerAddr = ww.length ? addr(ww[0]) : "0x0000000000000000000000000000000000000000";
-
-  // bids tuple[]: offset, length, then 5 words per entry
   const bw = words(bidsHex);
   const n = Number(u256(bw[1] || "0"));
   const rows = [];
@@ -157,28 +144,57 @@ async function load() {
     const deposit = u256(bw[base + 2]);
     const active = isBool(bw[base + 3]);
     const paid = isBool(bw[base + 4]);
-    let st, cls;
-    if (paid) { st = "已成交"; cls = "s-2"; }
-    else if (!active && deposit === 0n) { st = "已退款/拒绝"; cls = "s-6"; }
-    else if (!active) { st = "已违约(罚没)"; cls = "s-3"; }
-    else if (bidder.toLowerCase() === winnerAddr.toLowerCase()) { st = "当前中标"; cls = "s-1"; }
-    else { st = "候补"; cls = "s-0"; }
+    const b = { bidder, price, deposit, active, paid };
+    const [st, bcls] = bidStatus(b, winnerAddr);
+    const role = ROLE[bidder.toLowerCase()] || short(bidder);
     rows.push(`<tr>
-      <td class="mono">${short(bidder)}</td>
+      <td>${role}</td>
       <td class="mono">${fmt(price)}</td>
       <td class="mono">${fmt(deposit)}</td>
-      <td><span class="pill ${cls}">${st}</span></td></tr>`);
+      <td><span class="pill ${bcls}">${st}</span></td></tr>`);
   }
-  document.getElementById("bids").innerHTML = rows.length ? rows.join("") : '<tr><td colspan="4" class="note">暂无出价</td></tr>';
-
-  document.getElementById("contract").textContent = CONTRACT;
-  document.getElementById("explorer").href = "https://testnet.monadscan.com/address/" + CONTRACT;
+  return { state, cls, label, bal: u256(words(balHex)[0] || "0"), credit: u256(words(creditHex)[0] || "0"), rows };
 }
 
-load().catch((e) => {
-  document.getElementById("bids").innerHTML = `<tr><td colspan="4" class="note">读取失败：${e.message}</td></tr>`;
-});
-setInterval(load, 5000);
+function cardShell(a) {
+  const card = document.createElement("div");
+  card.className = "card";
+  card.innerHTML = `
+    <div class="card-head">
+      <div class="card-title">${a.label}</div>
+      <span class="tag ${a.scenario}">${a.title}</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="k">合约状态</div><div class="v state">–</div></div>
+      <div class="stat"><div class="k">受益人可提</div><div class="v credit">–</div></div>
+    </div>
+    <table>
+      <thead><tr><th>角色</th><th class="mono">出价</th><th class="mono">保证金</th><th>状态</th></tr></thead>
+      <tbody class="bids"><tr><td colspan="4" class="addr">读取中…</td></tr></tbody>
+    </table>
+    <div class="addr">${short(a.address)} · <a href="https://testnet.monadscan.com/address/${a.address}" target="_blank" rel="noopener">MonadScan</a></div>`;
+  return card;
+}
+
+async function refreshAll() {
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
+  for (const a of AUCTIONS) {
+    const card = cardShell(a);
+    grid.append(card);
+    try {
+      const r = await loadAuction(a);
+      card.querySelector(".state").innerHTML = `<span class="pill ${r.cls}">${r.label}</span>`;
+      card.querySelector(".credit").innerHTML = fmt(r.credit) + " <small>MON</small>";
+      card.querySelector(".bids").innerHTML = r.rows.length ? r.rows.join("") : '<tr><td colspan="4" class="addr">暂无出价</td></tr>';
+    } catch (e) {
+      card.querySelector(".bids").innerHTML = `<tr><td colspan="4" class="addr">读取失败：${e.message}</td></tr>`;
+    }
+  }
+}
+
+refreshAll();
+setInterval(refreshAll, 5000);
 </script>
 </body>
 </html>
