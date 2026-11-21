@@ -13,9 +13,10 @@ const { privateKeyToAccount, generatePrivateKey } = require("viem/accounts");
 const artifact = JSON.parse(
   fs.readFileSync(path.join(__dirname, "..", "artifacts", "FallbackAuction.json"), "utf-8")
 );
-const deployment = JSON.parse(
-  fs.readFileSync(path.join(__dirname, "..", "artifacts", "deployment-testnet.json"), "utf-8")
-);
+const walletDeployment = path.join(__dirname, "..", "artifacts", "deployment-testnet-wallet.json");
+const oldDeployment = path.join(__dirname, "..", "artifacts", "deployment-testnet.json");
+const deploymentFile = process.env.DEPLOYMENT || (fs.existsSync(walletDeployment) ? walletDeployment : oldDeployment);
+const deployment = JSON.parse(fs.readFileSync(deploymentFile, "utf-8"));
 const keyFile = path.join(__dirname, "..", ".bidder-keys.json");
 
 const RPC = "https://testnet-rpc.monad.xyz";

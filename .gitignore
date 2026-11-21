@@ -7,6 +7,7 @@ contracts/node_modules/
 
 # 一次性测试网部署/出价密钥（禁止入库）
 contracts/.deploy-key.json
+contracts/.deploy-key2.json
 contracts/.bidder-keys.json
 
 # 环境与本地临时

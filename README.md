@@ -114,9 +114,11 @@ node scripts/demo-server.js
 ## 测试网部署记录
 
 - 网络：Monad Testnet（chainId 10143，RPC `https://testnet-rpc.monad.xyz`）
-- 合约地址：`0x47c0a70433eee4c5f17c8e71d56fa8b29d7c90f5`
-- 浏览器：https://testnet.monadscan.com/address/0x47c0a70433eee4c5f17c8e71d56fa8b29d7c90f5
-- 参数：起拍价 0.1 MON，最小加价 0.05 MON，保证金 10%，付款窗口 600 秒，人数上限 8
+- 合约地址：`0x3fd84aa45a9fa5d8767214554711ea422a8ae191`
+- 部署者 / 受益人：`0xe9B912085EC50c378Fb776bD697255133DA215f3`
+- 部署交易：`0x52d0a9283e9fcb1be0ef515bf1cb9a9bdbb4657564107814099c33108c5f2063`
+- 浏览器：https://testnet.monadscan.com/address/0x3fd84aa45a9fa5d8767214554711ea422a8ae191
+- 参数：起拍价 0.1 MON，最小加价 0.05 MON，保证金 10%，付款窗口 600 秒，人数上限 8；已播种三笔演示出价 0.20 / 0.25 / 0.30 MON（保证金合计 0.075 MON）
 
 ## 前端
 
