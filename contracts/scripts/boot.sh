@@ -2,7 +2,8 @@
 # 云后端启动入口：本地 Hardhat 节点 → 批量重建 6 场演示 → 前台启动中继/静态页。
 # 容器重启后链上状态随内存清空，本脚本每次开机重新部署一轮演示，保证清单与节点一致。
 set -e
-cd /app/contracts
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+cd "$ROOT/contracts"
 
 echo "[boot] starting hardhat node :8545"
 npx hardhat node --port 8545 &

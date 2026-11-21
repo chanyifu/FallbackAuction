@@ -1,0 +1,13 @@
+{
+  "name": "FallbackAuction Demo",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:22",
+  "forwardPorts": [8899],
+  "portsAttributes": {
+    "8899": {
+      "visibility": "public",
+      "label": "fallback-auction-demo"
+    }
+  },
+  "postCreateCommand": "cd contracts && npm install",
+  "postStartCommand": "bash contracts/scripts/boot.sh"
+}
