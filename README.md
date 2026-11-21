@@ -119,6 +119,7 @@ node scripts/demo-server.js
 - 部署交易：`0x52d0a9283e9fcb1be0ef515bf1cb9a9bdbb4657564107814099c33108c5f2063`
 - 浏览器：https://testnet.monadscan.com/address/0x3fd84aa45a9fa5d8767214554711ea422a8ae191
 - 参数：起拍价 0.1 MON，最小加价 0.05 MON，保证金 10%，付款窗口 600 秒，人数上限 8；已播种三笔演示出价 0.20 / 0.25 / 0.30 MON（保证金合计 0.075 MON）
+- 线上只读观测页：https://chanyifu.github.io/FallbackAuction/ （直连 Monad 测试网公共 RPC，只读展示链上状态与出价榜；交互履约演示在本地环境进行）
 
 ## 前端
 
