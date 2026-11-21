@@ -20,6 +20,17 @@ docker run --rm -p 8899:8899 fa-demo
 # 打开 http://127.0.0.1:8899/
 ```
 
+## GitHub Codespaces（2026-11-21 已验证跑通）
+
+仓库根目录 `.devcontainer/devcontainer.json` 已配好：Node 22 镜像、转发端口 `8899`、端口公开可见，创建后自动 `npm install` 并跑 `contracts/scripts/boot.sh`。
+
+1. 打开 `https://github.com/codespaces/new?repo=chanyifu/FallbackAuction&branch=main`，确认 Dev container configuration 识别为 `FallbackAuction Demo`，选就近区域与 2-core，创建；
+2. 容器拉起后在「端口」面板确认 `8899` 已转发；若可见性为 Private，右键行 →「端口可见性」→ Public；
+3. 公开地址形如 `https://<codespace>-8899.app.github.dev/`，根页面与 `/api/state?auction=<addr>` 均可匿名访问；
+4. 演示链是内存链，Codespace 停止/休眠后重启会由 boot 脚本自动重建 6 场。
+
+> 本次线上演示地址：`https://supreme-memory-5rqxw5jpjgph4jr-8899.app.github.dev/`（场次 1 已走通违约递补成交路径）。
+
 ## Render（免费 Web Service）
 
 仓库已是 public，可直接用「Public Git Repository」方式接入，无需安装 Render GitHub App。
