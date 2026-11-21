@@ -137,6 +137,8 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
-server.listen(8899, "127.0.0.1", () => {
-  console.log("demo relay: http://127.0.0.1:8899  ·  auctions:", manifest.auctions.length);
+const PORT = Number(process.env.PORT || 8899);
+const HOST = process.env.HOST || "0.0.0.0";
+server.listen(PORT, HOST, () => {
+  console.log("demo relay: http://" + HOST + ":" + PORT + "  ·  auctions:", manifest.auctions.length);
 });

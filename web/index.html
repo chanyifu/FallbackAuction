@@ -94,7 +94,8 @@ if (!M) {
   banner.style.display = "block";
   banner.textContent = "未找到演示清单。请先在 contracts/ 目录运行 node scripts/demo-multi.js 生成清单。";
 } else {
-  const RELAY = M.relay;
+  // 经中继/隧道访问时走同源；file:// 直开时回退到清单里的本地地址。
+  const RELAY = location.protocol === "file:" ? M.relay : location.origin;
   const ROLE = {};
   M.accounts.forEach((a) => (ROLE[a.address.toLowerCase()] = a.role));
   const STATE_META = [

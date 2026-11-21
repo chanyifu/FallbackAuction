@@ -1,0 +1,8 @@
+contracts/node_modules
+web/demo-manifest.js
+.mojo
+contracts/.deploy-key.json
+contracts/.deploy-key2.json
+contracts/.bidder-keys.json
+docs/*.png
+.git
